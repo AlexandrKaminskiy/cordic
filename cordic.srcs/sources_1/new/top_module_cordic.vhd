@@ -62,36 +62,36 @@ constant pi: std_logic_vector(n - 1 downto 0) := x"6486";
 constant minuspi: std_logic_vector(n - 1 downto 0) := x"9B79";
 constant minuspidiv2: std_logic_vector(n - 1 downto 0) := x"cdbd";
 constant quantum_step: std_logic_vector(n - 1 downto 0) := x"000e";
-signal current_angle: std_logic_vector(n - 1 downto 0) := minuspidiv2;
+signal current_angle: std_logic_vector(n - 1 downto 0) := "0000000000000000";
 
 signal x_in : std_logic_vector (n - 1 downto 0) := "0010000000000000";
 signal y_in : std_logic_vector (n - 1 downto 0) := "0000000000000000";
 signal result_out : std_logic_vector(N - 1 downto 0) := "0000000000000000";
 
+signal clockwise: std_logic := '0';
 begin
 
 VALUES_GEN: process (CLK)
 variable current_angle_var: std_logic_vector(N - 1 downto 0) := "0000000000000000";
 begin
     if (rising_edge(CLK)) then
-    
-        current_angle_var := current_angle;
-        if (signed(current_angle_var) > 0) then
-            if (signed(current_angle_var) - signed(pidiv2) > 0) then
-                current_angle_var := std_logic_vector(signed(pi) - signed(current_angle_var));
+        if (clockwise = '0') then
+            current_angle_var := std_logic_vector(signed(current_angle) + signed(quantum_step));
+            if ((signed(current_angle_var) >= 0) and (signed(current_angle_var) - signed(pidiv2) > 0)) then
+                clockwise <= '1';
+            else 
+                clockwise <= '0';
             end if;
-        else 
-            if (signed(current_angle_var) + signed(pidiv2) < 0) then
-                current_angle_var := std_logic_vector(-signed(pi) - signed(current_angle_var));
-            end if;
-        end if;
-        
-        if ((signed(current_angle) > 0) and (signed(current_angle) - signed(pi) >= 0)) then
-            current_angle <= minuspidiv2;
         else
-            current_angle <= std_logic_vector(signed(current_angle) + signed(quantum_step));
+            current_angle_var := std_logic_vector(signed(current_angle) - signed(quantum_step));
+            if ((signed(current_angle_var) < 0) and (signed(minuspidiv2) - signed(current_angle_var) > 0)) then
+                clockwise <= '0';
+            else 
+                clockwise <= '1';
+            end if;
         end if;
-
+    
+        current_angle <= current_angle_var;
         
     end if;
 end process;

@@ -37,12 +37,14 @@ entity scailer is
       clk: in std_logic;
       e_i: in std_logic;
       shift: in std_logic_vector(3 downto 0);
-      x_result: in std_logic_vector(N - 1 downto 0);
-      y_result: in std_logic_vector(N - 1 downto 0);
-      x_in: in std_logic_vector(N - 1 downto 0);
-      y_in: in std_logic_vector(N - 1 downto 0);
-      x_out: out std_logic_vector(N - 1 downto 0);
-      y_out: out std_logic_vector(N - 1 downto 0);
+      x_result_in: in std_logic_vector(N - 1 downto 0); -- from scale
+      y_result_in: in std_logic_vector(N - 1 downto 0); -- from scale
+      x_in: in std_logic_vector(N - 1 downto 0); -- from alu
+      y_in: in std_logic_vector(N - 1 downto 0); -- from alu
+      x_result_out: out std_logic_vector(N - 1 downto 0); -- after scale
+      y_result_out: out std_logic_vector(N - 1 downto 0); -- after scale
+      x_out: out std_logic_vector(N - 1 downto 0); -- from alu
+      y_out: out std_logic_vector(N - 1 downto 0); -- from alu
       angle_result_in: in std_logic_vector(N - 1 downto 0);
       angle_result_out: out std_logic_vector(N - 1 downto 0)
     );
@@ -67,26 +69,27 @@ end function;
 
 begin
 
-SCALE: process(CLK, x_in, y_in, x_result, y_result, e_i)
+SCALE: process(CLK, x_in, y_in, x_result_in, y_result_in, e_i)
 variable x_shifted: std_logic_vector(N - 1 downto 0);
 variable y_shifted: std_logic_vector(N - 1 downto 0);
 begin
     if rising_edge(clk) then
         if (e_i = '1') then
             x_shifted := perform_shift(x_in, to_integer(unsigned(shift)));
-            s_x_out <= std_logic_vector(signed(x_shifted) + signed(x_result));
+            s_x_out <= std_logic_vector(signed(x_shifted) + signed(x_result_in));
             
             y_shifted := perform_shift(y_in, to_integer(unsigned(shift)));
-            s_y_out <= std_logic_vector(signed(y_shifted) + signed(y_result));
+            s_y_out <= std_logic_vector(signed(y_shifted) + signed(y_result_in));
         else
-            s_x_out <= x_result;
-            s_y_out <= y_result;
+            s_x_out <= x_result_in;
+            s_y_out <= y_result_in;
         end if;
         angle_result_out <= angle_result_in;
-
+        x_out <= x_in;
+        y_out <= y_in;
     end if;    
 end process;
 
-x_out <= s_x_out;
-y_out <= s_y_out;
+x_result_out <= s_x_out;
+y_result_out <= s_y_out;
 end Behavioral;

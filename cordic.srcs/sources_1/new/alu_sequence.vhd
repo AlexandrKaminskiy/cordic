@@ -50,6 +50,7 @@ architecture Behavioral of alu_sequence is
 type tp_holder is array (0 to ITERATION_QUANTITY - 1) of std_logic_vector (N - 1 downto 0);
 type tp_out_holder is array (0 to ITERATION_QUANTITY) of std_logic_vector (N - 1 downto 0);
 type tp_out_holder_scaled is array (0 to ITERATION_QUANTITY * 2) of std_logic_vector (N - 1 downto 0);
+type tp_out_holder_scaled_xy is array (0 to ITERATION_QUANTITY) of std_logic_vector (N - 1 downto 0);
 
 constant ROM : tp_holder := 
 (
@@ -79,10 +80,12 @@ component scailer is
       clk: in std_logic;
       e_i: in std_logic;
       shift: in std_logic_vector(3 downto 0);
-      x_result: in std_logic_vector(N - 1 downto 0);
-      y_result: in std_logic_vector(N - 1 downto 0);
+      x_result_in: in std_logic_vector(N - 1 downto 0);
+      y_result_in: in std_logic_vector(N - 1 downto 0);
       x_in: in std_logic_vector(N - 1 downto 0);
       y_in: in std_logic_vector(N - 1 downto 0);
+      x_result_out: out std_logic_vector(N - 1 downto 0); -- after scale
+      y_result_out: out std_logic_vector(N - 1 downto 0); -- after scale
       x_out: out std_logic_vector(N - 1 downto 0);
       y_out: out std_logic_vector(N - 1 downto 0);
       angle_result_in: in std_logic_vector(N - 1 downto 0);
@@ -93,13 +96,27 @@ end component;
 constant E: std_logic_vector(0 to N - 1) := "0001001101100111";
 
 signal s_iteration: std_logic_vector(3 downto 0) := "0000";
+
+--x from cordic alu, used in scaling
 signal x_holder : tp_out_holder_scaled := 
 (
     x_in, "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000"
 );
+--y from cordic alu, used in scaling
 signal y_holder : tp_out_holder_scaled := 
 (
     y_in, "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000"
+);
+
+--scaled itermediate x
+signal x_holder_scaled : tp_out_holder_scaled_xy := 
+(
+    "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000"
+);
+--scaled itermediate y
+signal y_holder_scaled : tp_out_holder_scaled_xy := 
+(
+    "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000", "0000000000000000"
 );
 
 signal result_holder : tp_out_holder_scaled := 
@@ -158,10 +175,12 @@ scale0: scailer port map (
         clk => clk, 
         e_i => E(2),
         shift => std_logic_vector(to_unsigned(0, 4)),
-        x_result => result_in,
-        y_result => result_in,
+        x_result_in => x_holder_scaled(0),
+        y_result_in => y_holder_scaled(0),
         x_in => x_holder(ITERATION_QUANTITY), 
         y_in => y_holder(ITERATION_QUANTITY), 
+        x_result_out => x_holder_scaled(1),
+        y_result_out => y_holder_scaled(1),
         x_out => x_holder(ITERATION_QUANTITY + 1), 
         y_out => y_holder(ITERATION_QUANTITY + 1),
         angle_result_in => result_holder(ITERATION_QUANTITY), 
@@ -173,10 +192,12 @@ SCALING: FOR I IN 1 TO ITERATION_QUANTITY - 1 GENERATE
         clk => clk, 
         e_i => E(I + 2),
         shift => std_logic_vector(to_unsigned(I, 4)),
-        x_result => x_holder(ITERATION_QUANTITY + I),
-        y_result => y_holder(ITERATION_QUANTITY + I),
-        x_in => x_holder(ITERATION_QUANTITY), 
-        y_in => y_holder(ITERATION_QUANTITY), 
+        x_result_in => x_holder_scaled(I),
+        y_result_in => y_holder_scaled(I),
+        x_in => x_holder(ITERATION_QUANTITY + I), 
+        y_in => y_holder(ITERATION_QUANTITY + I), 
+        x_result_out => x_holder_scaled(I + 1),
+        y_result_out => y_holder_scaled(I + 1),
         x_out => x_holder(ITERATION_QUANTITY + I + 1), 
         y_out => y_holder(ITERATION_QUANTITY + I + 1),
         angle_result_in => result_holder(ITERATION_QUANTITY + I), 
@@ -187,7 +208,7 @@ END GENERATE;
 
 --todo add registers for storing itermediate values of x[] and y[]
 --todo fix rtl in scailer and alu (shift in function)
-x_out <= x_holder(x_holder'length - 1);
-y_out <= y_holder(y_holder'length - 1);
+x_out <= x_holder_scaled(x_holder_scaled'length - 1);
+y_out <= y_holder_scaled(x_holder_scaled'length - 1);
 result_out <= result_holder(result_holder'length - 1);
 end Behavioral;

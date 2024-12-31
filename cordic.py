@@ -40,11 +40,11 @@ print('e', e)
 print('e', e.hex())
 print('e', e.bin(frac_dot=True))
 
-PIDIV2 = Fxp(-math.pi / 2).like(DATA)
+PIDIV2 = Fxp(math.pi).like(DATA)
 print('pi ', PIDIV2.hex())
 
 
-goal = Fxp(-math.pi / 2).like(DATA)
+goal = Fxp(0).like(DATA)
 
 
 result = Fxp(0).like(DATA)
