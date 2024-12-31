@@ -206,7 +206,6 @@ SCALING: FOR I IN 1 TO ITERATION_QUANTITY - 1 GENERATE
 
 END GENERATE;
 
---todo add registers for storing itermediate values of x[] and y[]
 --todo fix rtl in scailer and alu (shift in function)
 x_out <= x_holder_scaled(x_holder_scaled'length - 1);
 y_out <= y_holder_scaled(x_holder_scaled'length - 1);

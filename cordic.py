@@ -1,9 +1,7 @@
-from math import atan2
-
-from fxpmath import Fxp
-import numpy as np
 import math
 
+import numpy as np
+from fxpmath import Fxp
 
 N = 16
 FRAC = N - 3
@@ -54,6 +52,7 @@ y = Fxp(0).like(DATA)
 
 x1 = Fxp(1).like(DATA)
 y1 = Fxp(0).like(DATA)
+
 x1.config.shifting = 'trunc'
 y1.rounding = 'trunc'
 x.config.shifting = 'trunc'

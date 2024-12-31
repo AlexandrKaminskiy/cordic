@@ -43,10 +43,12 @@ component scailer is
         clk: in std_logic;
         e_i: in std_logic;
         shift: in std_logic_vector(3 downto 0);
-        x_result: in std_logic_vector(N - 1 downto 0);
-        y_result: in std_logic_vector(N - 1 downto 0);
+        x_result_in: in std_logic_vector(N - 1 downto 0);
+        y_result_in: in std_logic_vector(N - 1 downto 0);
         x_in: in std_logic_vector(N - 1 downto 0);
         y_in: in std_logic_vector(N - 1 downto 0);
+        x_result_out: out std_logic_vector(N - 1 downto 0);
+        y_result_out: out std_logic_vector(N - 1 downto 0);
         x_out: out std_logic_vector(N - 1 downto 0);
         y_out: out std_logic_vector(N - 1 downto 0);
         angle_result_in: in std_logic_vector(N - 1 downto 0);
@@ -78,11 +80,13 @@ end process;
 scale: scailer port map (
     s_clk, 
     E(6),
-    std_logic_vector(to_unsigned(4, 4)),
+    std_logic_vector(to_unsigned(1, 4)),
     result_in_x, 
     result_in_y,
     x_in, 
     y_in, 
+    x_out,
+    y_out,
     x_out,
     y_out,
     s_angle_result_in,

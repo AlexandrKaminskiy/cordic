@@ -60,10 +60,15 @@ function shift(
     shift: integer
 ) return std_logic_vector is
 variable result: std_logic_vector(N - 1 downto 0);
-variable sign_bits : std_logic_vector(shift - 1 downto 0);-- = (others => acc_temp0(acc_temp0'high));
+variable sign_bits : std_logic_vector(N - 1 downto 0);-- = (others => acc_temp0(acc_temp0'high));
 begin
-    sign_bits := (others => a(a'high));
-    result := sign_bits & a(a'length - 1 downto sign_bits'length);
+    for i in 0 to N - 1 loop
+        if i < shift then
+            result(N - i - 1) := a(a'high);  -- Заполняем знаковыми битами
+        else
+            result(N - i - 1) := a(N - i - 1 + shift);
+        end if;
+    end loop;
     return result;
 end function;
 
